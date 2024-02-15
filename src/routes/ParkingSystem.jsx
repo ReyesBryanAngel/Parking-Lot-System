@@ -48,16 +48,16 @@ const ParkingSystem = () => {
                 entryPoint: entryPoint,
                 vehicle: {
                     size: parkingSize,
-                    parkedTime: dayjs(),
+                    parkedTime: parkedTime,
                 },
                 fee: calculateFee(parkedTime, parkingSize, leftVehicles),
                 occupied: occupied
             };
             switch (true) {
-                case vehicleSize == 1 && parkingSize == 0:
+                case vehicleSize === 1 && parkingSize === 0:
                     alert('Medium Vehicles cannot park to small parking slot.');
                     break;
-                case vehicleSize == 2 && (parkingSize == 0 || parkingSize == 1):
+                case vehicleSize === 2 && (parkingSize === 0 || parkingSize === 1):
                     alert('Large Parking cannot park to either small or medium parking slots.');
                     break;
                 default:
@@ -66,7 +66,7 @@ const ParkingSystem = () => {
                     break;
             }
         }
-    }, [leftVehicles, vehicleSize]);
+    }, [leftVehicles, parkingSlots, setOccupiedParkingLots, setAddEntryPoint, vehicleSize]);
     
 
       const unparkVehicle = (slotId) => {
