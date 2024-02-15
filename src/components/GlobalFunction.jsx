@@ -62,10 +62,17 @@ const getSizeLabel = (size) => {
 }
 
 const updateFilteredParkingSlots = (entryPoint, parkingSlots, setFilteredParkingSlots) => {
-    const filteredSlots = entryPoint
-      ? parkingSlots?.filter(slot => slot.distances[entryPoint] <= 16)
-      : [];
-    setFilteredParkingSlots(filteredSlots);
+    const updatedSlots = parkingSlots.map(slot => {
+        const distance = Math.floor(Math.random() * 20) + 1;
+        return {
+            ...slot,
+            distances: {
+                ...slot.distances,
+                [entryPoint]: distance
+            }
+        };
+    });
+    setFilteredParkingSlots(updatedSlots);
 };
 
 const handleSlotUpdate = (slotId, setConfirmation, setOccupiedParkingLots, updateProps) => {

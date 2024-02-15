@@ -1,32 +1,60 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Button, Typography } from "@mui/material";
 
-const ProcessInitiator = ({vehicleSize, handleEntryPointSelect, selectedEntryPoint, sortedParkingSlots, parkVehicle}) => {
+const ProcessInitiator = ({vehicleSize, handleEntryPointSelect, selectedEntryPoint, sortedParkingSlots, parkVehicle, addEntryPoint}) => {
+    const [defaultButtons, setDefaultButtons] = useState(['A', 'B', 'C']);
+    
+
+    const handleAddEntryPoint = () => {
+        const lastLetter = defaultButtons[defaultButtons.length - 1];
+        const nextLetterToAdd =  String.fromCharCode(lastLetter.charCodeAt(0) + 1);
+        if (nextLetterToAdd <= 'G') {
+            setDefaultButtons([...defaultButtons, nextLetterToAdd]);
+        }
+    }
     return (
        <>
-            {vehicleSize !== null &&(
-                    <div className='space-x-5'>
-                        <Button variant='contained' onClick={() => { handleEntryPointSelect('A'); } }>A</Button>
-                        <Button variant='contained' onClick={() => { handleEntryPointSelect('B'); } }>B</Button>
-                        <Button variant='contained' onClick={() => { handleEntryPointSelect('C'); } }>C</Button>
-                    </div>
+        <div className='flex self-left'>
+            <Button disabled={!addEntryPoint} variant='contained' onClick={handleAddEntryPoint}>Add Entry Point</Button>
+        </div>
+            {vehicleSize !== null && (
+                defaultButtons.map((label, index) => (
+                    <Button
+                        sx={{ marginX:"10px" }}
+                        key={index}
+                        variant='contained' 
+                        onClick={() => { handleEntryPointSelect(label); }}
+                    >
+                    {label}
+                    </Button>
+                ))
             )}
+
+            
+            
             {selectedEntryPoint && (
                 <div className='mt-10 text-left space-y-5'>
                     <Typography variant='h6'>Parking Slots near Entry Point {selectedEntryPoint}:</Typography>
                     <ul>
                     {sortedParkingSlots?.map(slot => {
-                        return (
-                            <li key={slot.id}>
-                                <Typography sx={{ marginLeft:"20px" }}>{slot.name} (Distance Unit: {slot.distances[selectedEntryPoint]})</Typography>
-                                <div className='m-5 space-x-5'>
-                                    <Button variant='contained' onClick={() => parkVehicle(slot.id, 0, selectedEntryPoint, true)}>Small Parking</Button>
-                                    <Button variant='contained' onClick={() => parkVehicle(slot.id, 1, selectedEntryPoint, true)}>Medium Parking</Button>
-                                    <Button variant='contained' onClick={() => parkVehicle(slot.id, 2, selectedEntryPoint, true)}>Large Parking</Button>
-                                </div>
-                            </li>
-                        );
-                    })}
+                    return (
+                        <li key={slot.id}>
+                            <Typography sx={{ marginLeft:"20px" }}>{slot.name} (Distance Unit: {slot.distances[selectedEntryPoint]})</Typography>
+                            <div className='m-5 space-x-5'>
+            
+                                {Object.keys(slot.distances).map((entryPoint, index) => (
+                                    <Button 
+                                        key={index} 
+                                        variant='contained' 
+                                        onClick={() => parkVehicle(slot.id, slot.parkingSize, entryPoint, true)}
+                                    >
+                                        {slot.name}
+                                    </Button>
+                                ))}
+                            </div>
+                        </li>
+                    );
+                })}
                     </ul>
                 </div>
             )}

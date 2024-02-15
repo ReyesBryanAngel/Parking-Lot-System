@@ -25,6 +25,7 @@ const ParkingSystem = () => {
     const [currentTime, setCurrentTime] = useState(Date.now());
     const [totalCharge, setTotalCharge] = useState(0);
     const [hiddenSlots, setHiddenSlots] = useState({});
+    const [addEntryPoint, setAddEntryPoint] = useState(false);
 
     const handleVehicleSizeChange = (event) => {
         setVehicleSize(event.target.value);
@@ -61,6 +62,7 @@ const ParkingSystem = () => {
                     break;
                 default:
                     setOccupiedParkingLots(prevOccupiedParkingLots => [...prevOccupiedParkingLots, updatedParkingSlots[slotIndex]]);
+                    setAddEntryPoint(true);
                     break;
             }
         }
@@ -106,7 +108,6 @@ const ParkingSystem = () => {
     
 
     useEffect(() => {
-        // Function to sort parking slots
         const sortParkingSlots = () => {
             if (filteredParkingSlots.length > 0 && selectedEntryPoint) {
                 const sortedSlots = filteredParkingSlots.slice().sort((a, b) => {
@@ -174,6 +175,7 @@ const ParkingSystem = () => {
                     selectedEntryPoint={selectedEntryPoint}
                     sortedParkingSlots={sortedParkingSlots}
                     parkVehicle={parkVehicle}
+                    addEntryPoint={addEntryPoint}
                 />
             </div>
             <div>
