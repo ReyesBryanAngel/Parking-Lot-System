@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Typography } from "@mui/material";
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
@@ -30,25 +30,24 @@ const ParkingSystem = () => {
         setVehicleSize(event.target.value);
     };
 
-    const handleHideSlot = (index) => {
+    const handleHideSlot = (slotId) => {
         setHiddenSlots(prevState => ({
             ...prevState,
-            [index]: true // Set visibility of slot at index to true
+            [slotId]: true
         }));
     };
     
-    const parkVehicle = (slotId, parkingSize, entryPoint, occupied) => {
+    const parkVehicle = useCallback((slotId, parkingSize, entryPoint, occupied) => {
         const slotIndex = parkingSlots.findIndex(slot => slot.id === slotId);
         if (slotIndex !== -1 && !parkingSlots[slotIndex].vehicle) {
             const updatedParkingSlots = [...parkingSlots];
-            const parkedTime = Date.now();
-            console
+            const parkedTime = dayjs();
             updatedParkingSlots[slotIndex] = {
                 ...updatedParkingSlots[slotIndex],
                 entryPoint: entryPoint,
                 vehicle: {
                     size: parkingSize,
-                    parkedTime: Date.now(),
+                    parkedTime: dayjs(),
                 },
                 fee: calculateFee(parkedTime, parkingSize, leftVehicles),
                 occupied: occupied
@@ -57,23 +56,23 @@ const ParkingSystem = () => {
                 case vehicleSize == 1 && parkingSize == 0:
                     alert('Medium Vehicles cannot park to small parking slot.');
                     break;
-                case vehicleSize == 2 && (parkingSize == 0
-                    || parkingSize == 1):
+                case vehicleSize == 2 && (parkingSize == 0 || parkingSize == 1):
                     alert('Large Parking cannot park to either small or medium parking slots.');
                     break;
                 default:
                     setOccupiedParkingLots(prevOccupiedParkingLots => [...prevOccupiedParkingLots, updatedParkingSlots[slotIndex]]);
                     break;
-                }
+            }
         }
-      };
+    }, [leftVehicles, vehicleSize]);
+    
 
       const unparkVehicle = (slotId) => {
         setConfirmation(true);
         occupiedParkingLots.map(slot => {
             if (slot.id === slotId && slot.vehicle && confirmation) {
                 const { size, parkedTime } = slot.vehicle;
-                const charge = calculateFee(parkedTime, size, leftVehicles); // Calculate the fee for the parked vehicle
+                const charge = calculateFee(parkedTime, size, leftVehicles);
                 setTotalCharge(charge);
                 setTimeout(() => {
                     const updatedSlot = {
@@ -107,6 +106,7 @@ const ParkingSystem = () => {
     
 
     useEffect(() => {
+        // Function to sort parking slots
         const sortParkingSlots = () => {
             if (filteredParkingSlots.length > 0 && selectedEntryPoint) {
                 const sortedSlots = filteredParkingSlots.slice().sort((a, b) => {
@@ -115,25 +115,10 @@ const ParkingSystem = () => {
                 setSortedParkingSlots(sortedSlots);
             }
         };
-    
-        sortParkingSlots();
-        const interval = setInterval(() => {
-            const now = dayjs();
-            const newlyLeftVehicles = leftVehicles.filter(vehicle => {
-                const parkedTime = dayjs(vehicle.parkedTime);
-                return now.diff(parkedTime, 'hours') >= 1;
-            });
-            if (newlyLeftVehicles.length > 0) {
-                setLeftVehicles(prevLeftVehicles => prevLeftVehicles.filter(vehicle => !newlyLeftVehicles.includes(vehicle)));
-            }
-        }, 60000);
-    
-        return () => clearInterval(interval);
-    }, [leftVehicles, filteredParkingSlots, selectedEntryPoint]);
-    
 
-    useEffect(() => {
-        const updateOccupiedParkingLots = () => {
+        sortParkingSlots();
+
+        const updateParkingLots = () => {
             setOccupiedParkingLots(prevOccupiedParkingLots => {
                 return prevOccupiedParkingLots.map(slot => {
                     if (slot.vehicle) {
@@ -147,20 +132,28 @@ const ParkingSystem = () => {
                     return slot;
                 });
             });
-        };
-        updateOccupiedParkingLots();
-        const interval = setInterval(updateOccupiedParkingLots, 5000);
-        return () => clearInterval(interval);
-    }, [leftVehicles]);
     
-
-    useEffect(() => {
+            const now = dayjs();
+            const newlyLeftVehicles = leftVehicles.filter(vehicle => {
+                const parkedTime = dayjs(vehicle.parkedTime);
+                return now.diff(parkedTime, 'hours') >= 1;
+            });
+            if (newlyLeftVehicles.length > 0) {
+                setLeftVehicles(prevLeftVehicles => prevLeftVehicles.filter(vehicle => !newlyLeftVehicles.includes(vehicle)));
+            }
+        };
+    
         const timer = setInterval(() => {
             setCurrentTime(Date.now());
         }, 1000);
-
-        return () => clearInterval(timer);
-    }, []);
+    
+        const interval = setInterval(updateParkingLots, 5000);
+    
+        return () => {
+            clearInterval(timer);
+            clearInterval(interval);
+        };
+    }, [leftVehicles, filteredParkingSlots, selectedEntryPoint]);
 
 
     const handleEntryPointSelect = (entryPoint) => {
@@ -186,9 +179,9 @@ const ParkingSystem = () => {
             <div>
                 {occupiedParkingLots?.length > 0 && (
                     <div className='grid gap-16 md:grid-cols-3'>
-                        {occupiedParkingLots.map((slot, index) => {
+                        {occupiedParkingLots.map((slot) => {
                             return (
-                                !hiddenSlots[index]  && slot.vehicle && (
+                                !hiddenSlots[slot.id] && slot.vehicle && (
                                     <div key={slot.id} className='mt-20'>
                                         <Typography>{slot.name} (Size: {getSizeLabel(slot.vehicle.size)}) <br/></Typography> 
                                         <div className='flex items-center justify-center mt-5 space-x-5 '>
