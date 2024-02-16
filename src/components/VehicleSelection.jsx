@@ -5,7 +5,7 @@ const VehicleSelection = ({vehicleSize, handleVehicleSizeChange }) => {
     return (
         <div>
             <FormControl sx={{ width:"300px" }}>
-                <InputLabel id="demo-simple-select-label">Select Parking</InputLabel>
+                <InputLabel id="demo-simple-select-label">Select Vehicle</InputLabel>
                 <Select
                     labelId="demo-simple-select-label"
                     id="demo-simple-select"
@@ -13,9 +13,9 @@ const VehicleSelection = ({vehicleSize, handleVehicleSizeChange }) => {
                     label="Vehicle Size"
                     onChange={handleVehicleSizeChange}
                 >
-                    <MenuItem value={0}>Small Parking</MenuItem>
-                    <MenuItem value={1}>Medium Parking</MenuItem>
-                    <MenuItem value={2}>Large Parking</MenuItem>
+                    <MenuItem value={0}>Small Vehicle</MenuItem>
+                    <MenuItem value={1}>Medium Vehicle</MenuItem>
+                    <MenuItem value={2}>Large Vehicle</MenuItem>
                 </Select>
             </FormControl>
         </div>
