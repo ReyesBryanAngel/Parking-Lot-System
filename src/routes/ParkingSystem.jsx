@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { Button, Typography } from "@mui/material";
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import VehicleSelection from '../components/VehicleSelection';
-import parkingSlots from '../static/ParkingSlots';
+import parkingSlots from '../static/parkingSlots';
 import ProcessInitiator from '../components/ProcessInitiator';
 import { 
     calculateFee, 
@@ -24,33 +25,36 @@ const ParkingSystem = () => {
     const [leftVehicles, setLeftVehicles] = useState([]);
     const [currentTime, setCurrentTime] = useState(Date.now());
     const [totalCharge, setTotalCharge] = useState(0);
-    const [hiddenSlots, setHiddenSlots] = useState({});
+    // const [hiddenSlots, setHiddenSlots] = useState({});
     const [addEntryPoint, setAddEntryPoint] = useState(false);
+    // const [parkingSlots, setParkingSlots] = useState(parkingSlotsStatic);
 
     const handleVehicleSizeChange = (event) => {
         setVehicleSize(event.target.value);
     };
 
-    const handleHideSlot = (slotId) => {
-        setHiddenSlots(prevState => ({
-            ...prevState,
-            [slotId]: true
-        }));
-    };
+    // const handleHideSlot = (slotId) => {
+    //     setHiddenSlots(prevState => ({
+    //         ...prevState,
+    //         [slotId]: true
+    //     }));
+    // };
     
     const parkVehicle = useCallback((slotId, parkingSize, entryPoint, occupied) => {
         const slotIndex = parkingSlots.findIndex(slot => slot.id === slotId);
+        let uniqueId = uuidv4();
+        const parkedTime = dayjs();
         if (slotIndex !== -1 && !parkingSlots[slotIndex].vehicle) {
             const updatedParkingSlots = [...parkingSlots];
-            const parkedTime = dayjs();
             updatedParkingSlots[slotIndex] = {
                 ...updatedParkingSlots[slotIndex],
                 entryPoint: entryPoint,
+                uuid: uniqueId,
                 vehicle: {
                     size: parkingSize,
                     parkedTime: parkedTime,
+                    fee: calculateFee(parkedTime, parkingSize, leftVehicles), 
                 },
-                fee: calculateFee(parkedTime, parkingSize, leftVehicles),
                 occupied: occupied
             };
             switch (true) {
@@ -66,7 +70,7 @@ const ParkingSystem = () => {
                     break;
             }
         }
-    }, [leftVehicles, parkingSlots, setOccupiedParkingLots, setAddEntryPoint, vehicleSize]);
+    }, [leftVehicles, setOccupiedParkingLots, setAddEntryPoint, vehicleSize]);
     
 
       const unparkVehicle = (slotId) => {
@@ -118,6 +122,7 @@ const ParkingSystem = () => {
         };
 
         sortParkingSlots();
+       
 
         const updateParkingLots = () => {
             setOccupiedParkingLots(prevOccupiedParkingLots => {
@@ -183,7 +188,7 @@ const ParkingSystem = () => {
                     <div className='grid gap-16 md:grid-cols-3'>
                         {occupiedParkingLots.map((slot) => {
                             return (
-                                !hiddenSlots[slot.id] && slot.vehicle && (
+                                slot.vehicle && (
                                     <div key={slot.id} className='mt-20'>
                                         <Typography>{slot.name.replace("Parking", "Vehicle")} (Size: {getSizeLabel(slot.vehicle.size)}) <br/></Typography> 
                                         <div className='flex items-center justify-center mt-5 space-x-5 '>
@@ -210,7 +215,7 @@ const ParkingSystem = () => {
                                                     onClick={() => { 
                                                         handleVehicleLeave(slot.vehicle.parkedTime, currentTime);
                                                         setConfirmation(false);
-                                                        handleHideSlot(slot.id);
+                                                        // handleHideSlot(slot.id);
                                                     }}
                                                 >
                                                         Will get Back

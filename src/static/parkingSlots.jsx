@@ -1,6 +1,7 @@
 const parkingSlots = [
     { 
         id: 1,
+        uuid: null,
         entryPoint: null,
         name: 'Small Parking', 
         parkingSize: 0, 
@@ -12,6 +13,7 @@ const parkingSlots = [
     },
     {   
         id: 2,
+        uuid: null,
         entryPoint: null,
         name: 'Medium Parking', 
         parkingSize: 1, 
@@ -23,6 +25,7 @@ const parkingSlots = [
     },
     {   
         id: 3,
+        uuid: null,
         entryPoint: null,
         name: 'Large Parking', 
         parkingSize: 2, 

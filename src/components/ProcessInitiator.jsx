@@ -1,10 +1,19 @@
 import React, { useEffect, useState } from 'react'
 import { Button, Typography } from "@mui/material";
 
-const ProcessInitiator = ({vehicleSize, handleEntryPointSelect, selectedEntryPoint, sortedParkingSlots, parkVehicle, addEntryPoint}) => {
+const ProcessInitiator = ({
+    vehicleSize, 
+    handleEntryPointSelect, 
+    selectedEntryPoint, 
+    sortedParkingSlots, 
+    parkVehicle, 
+    addEntryPoint
+}) => {
     const [defaultButtons, setDefaultButtons] = useState(['A', 'B', 'C']);
     
-
+    useEffect(() => {
+        console.log(sortedParkingSlots);
+    })
     const handleAddEntryPoint = () => {
         const lastLetter = defaultButtons[defaultButtons.length - 1];
         const nextLetterToAdd =  String.fromCharCode(lastLetter.charCodeAt(0) + 1);
@@ -23,7 +32,7 @@ const ProcessInitiator = ({vehicleSize, handleEntryPointSelect, selectedEntryPoi
                         sx={{ marginX:"10px" }}
                         key={index}
                         variant='contained' 
-                        onClick={() => { handleEntryPointSelect(label); }}
+                        onClick={() => { handleEntryPointSelect(label); sortParkingSlots }}
                     >
                     {label}
                     </Button>
