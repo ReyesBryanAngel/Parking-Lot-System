@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { Button, Typography } from "@mui/material";
-import { duplicateParkingLocator } from './GlobalFunction';
+import { duplicateParkingLocator, handleEntryPointSelect } from './GlobalFunction';
 
 const ProcessInitiator = ({
-    vehicleSize, 
-    handleEntryPointSelect, 
+    vehicleSize,
     selectedEntryPoint, 
     sortedParkingSlots, 
     parkVehicle, 
     addEntryPoint, 
-    parkingSlotInfo, 
+    parkingSlotInfo,
+    setSelectedEntryPoint,
+    staticParkingSlots
 }) => {
     const [defaultButtons, setDefaultButtons] = useState(['A', 'B', 'C']);
     
@@ -28,14 +29,14 @@ const ProcessInitiator = ({
                 <Button disabled={!addEntryPoint} variant='contained' onClick={handleAddEntryPoint}>Add Entry Point</Button>
             </div>
             {vehicleSize !== null && (
-                defaultButtons.map((label, index) => (
+                defaultButtons.map((entryPoint, index) => (
                     <Button
                         sx={{ marginX:"10px" }}
                         key={index}
                         variant='contained' 
-                        onClick={() => { handleEntryPointSelect(label); }}
+                        onClick={() => { handleEntryPointSelect(entryPoint, setSelectedEntryPoint, staticParkingSlots); }}
                     >
-                    {label}
+                    {entryPoint}
                     </Button>
                 ))
             )}

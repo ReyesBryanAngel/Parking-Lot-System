@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Typography } from "@mui/material";
 import dayjs from 'dayjs';
+import staticParkingSlots from '../static/staticParkingSlots';
 import duration from 'dayjs/plugin/duration';
 import VehicleSelection from '../components/VehicleSelection';
-import staticParkingSlots from '../static/staticParkingSlots';
 import ProcessInitiator from '../components/ProcessInitiator';
 import { 
     calculateFee, 
     duplicateParkingLocator, 
     formatTime, 
     handleSlotUpdate,
+    handleVehicleLeave,
     vehicleSizeSetter, 
 } from '../components/GlobalFunction';
 dayjs.extend(duration);
@@ -123,17 +124,8 @@ const ParkingSystem = () => {
             });
         });
     };
-    
-    const handleVehicleLeave = (parkedTime) => {
-        const elapsedTime = currentTime - parkedTime;
-        const convertedTime = dayjs.duration(elapsedTime).format("HH[h] mm[m] ss[s]");
-        if (convertedTime) {
-            setLeftVehicles(prevLeftVehicles => [...prevLeftVehicles, convertedTime]);
-        }
-    }; 
 
     useEffect(() => {
-        console.log(vehicleSize);
         const sortParkingSlots = () => {
             if (parkingSlots.length > 0 && selectedEntryPoint) {
                 const sortedSlots = parkingSlots.slice().sort((a, b) => {
@@ -179,25 +171,7 @@ const ParkingSystem = () => {
             clearInterval(timer);
             clearInterval(interval);
         };
-    }, [leftVehicles, selectedEntryPoint, parkingSlots, vehicleSize]);
-
-
-    const handleEntryPointSelect = (entryPoint) => {
-        setSelectedEntryPoint(entryPoint);
-        
-        staticParkingSlots.forEach(slot => {
-          const distances = {};
-          ['SP', 'MP', 'LP'].forEach(prefix => {
-            for (let i = 1; i <= 3; i++) {
-              const key = prefix + i;
-              const distanceFromEntryPoint = Math.abs(entryPoint.charCodeAt(0) - 'A'.charCodeAt(0) + 1 - i);
-              distances[key] = staticParkingSlots[slot.id - 1].distances[key] + distanceFromEntryPoint;
-            }
-          });
-      
-          slot.distances = distances;
-        });
-      };
+    }, [leftVehicles, selectedEntryPoint, parkingSlots]);
       
     return (
         <div className='flex flex-col items-center justify-evenly'>
@@ -208,12 +182,13 @@ const ParkingSystem = () => {
                 />
                 <ProcessInitiator
                     vehicleSize={vehicleSize}
-                    handleEntryPointSelect={handleEntryPointSelect}
+                    setSelectedEntryPoint={setSelectedEntryPoint}
                     selectedEntryPoint={selectedEntryPoint}
                     sortedParkingSlots={sortedParkingSlots}
                     parkVehicle={parkVehicle}
                     addEntryPoint={addEntryPoint}
                     parkingSlotInfo={parkingSlotInfo}
+                    staticParkingSlots={staticParkingSlots}
                 />
             </div>
             <div>
@@ -255,7 +230,7 @@ const ParkingSystem = () => {
                                                     </Button>
                                                 <Button variant='contained' 
                                                     onClick={() => { 
-                                                        handleVehicleLeave(slot.vehicle.parkedTime, currentTime);
+                                                        handleVehicleLeave(slot.vehicle.parkedTime, currentTime, setLeftVehicles);
                                                         setConfirmation(false);
                                                     }}
                                                 >

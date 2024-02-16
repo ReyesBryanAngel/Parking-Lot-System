@@ -105,11 +105,35 @@ const handleSlotUpdate = (
             parkingLotName: locateVehicleArea.parkingLotName,
             parkingSize: locateVehicleArea.parkingSize
         };
-        console.log(updatedParkingAreaLocator);
 
         setParkingAreaLocator(updatedParkingAreaLocator);
     }
 };
+
+const handleVehicleLeave = (parkedTime, currentTime, setLeftVehicles) => {
+    const elapsedTime = currentTime - parkedTime;
+    const convertedTime = dayjs.duration(elapsedTime).format("HH[h] mm[m] ss[s]");
+    if (convertedTime) {
+        setLeftVehicles(prevLeftVehicles => [...prevLeftVehicles, convertedTime]);
+    }
+};
+
+const handleEntryPointSelect = (entryPoint, setSelectedEntryPoint, staticParkingSlots) => {
+    setSelectedEntryPoint(entryPoint);
+    
+    staticParkingSlots.forEach(slot => {
+      const distances = {};
+      ['SP', 'MP', 'LP'].forEach(prefix => {
+        for (let i = 1; i <= 3; i++) {
+          const key = prefix + i;
+          const distanceFromEntryPoint = Math.abs(entryPoint.charCodeAt(0) - 'A'.charCodeAt(0) + 1 - i);
+          distances[key] = staticParkingSlots[slot.id - 1].distances[key] + distanceFromEntryPoint;
+        }
+      });
+  
+      slot.distances = distances;
+    });
+  };
 
 export {
     formatTime,
@@ -117,7 +141,9 @@ export {
     getSizeLabel,
     handleSlotUpdate,
     duplicateParkingLocator,
-    vehicleSizeSetter
+    vehicleSizeSetter,
+    handleVehicleLeave,
+    handleEntryPointSelect
 }
 
 
