@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import { Button, Typography } from "@mui/material";
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import VehicleSelection from '../components/VehicleSelection';
-import parkingSlots from '../static/parkingSlots';
+import staticParkingSlots from '../static/staticParkingSlots';
 import ProcessInitiator from '../components/ProcessInitiator';
+import isEqual from 'lodash/isEqual';
 import { 
     calculateFee, 
     formatTime, 
@@ -25,55 +25,61 @@ const ParkingSystem = () => {
     const [leftVehicles, setLeftVehicles] = useState([]);
     const [currentTime, setCurrentTime] = useState(Date.now());
     const [totalCharge, setTotalCharge] = useState(0);
-    // const [hiddenSlots, setHiddenSlots] = useState({});
     const [addEntryPoint, setAddEntryPoint] = useState(false);
-    // const [parkingSlots, setParkingSlots] = useState(parkingSlotsStatic);
+    const [parkingSlots, setParkingSlots] = useState(staticParkingSlots);
+    const [parkingSlotInfo, setParkingSlotInfo] = useState([{
+        entryPoint: null,
+        occupied: null,
+        parkingSize: null
+    }])
 
     const handleVehicleSizeChange = (event) => {
         setVehicleSize(event.target.value);
     };
-
-    // const handleHideSlot = (slotId) => {
-    //     setHiddenSlots(prevState => ({
-    //         ...prevState,
-    //         [slotId]: true
-    //     }));
-    // };
     
     const parkVehicle = useCallback((slotId, parkingSize, entryPoint, occupied) => {
         const slotIndex = parkingSlots.findIndex(slot => slot.id === slotId);
-        let uniqueId = uuidv4();
-        const parkedTime = dayjs();
-        if (slotIndex !== -1 && !parkingSlots[slotIndex].vehicle) {
+        if (isEqual({ entryPoint, occupied, parkingSize }, parkingSlotInfo)) {
+            alert('Alert Message: Your conditions for alert!');
+        } else {
             const updatedParkingSlots = [...parkingSlots];
+            const parkedTime = dayjs();
+            const charge = calculateFee(parkedTime, parkingSize, leftVehicles);
             updatedParkingSlots[slotIndex] = {
                 ...updatedParkingSlots[slotIndex],
                 entryPoint: entryPoint,
-                uuid: uniqueId,
                 vehicle: {
                     size: parkingSize,
-                    parkedTime: parkedTime,
-                    fee: calculateFee(parkedTime, parkingSize, leftVehicles), 
+                    parkedTime: parkedTime,      
                 },
+                fee: charge,
                 occupied: occupied
             };
             switch (true) {
                 case vehicleSize === 1 && parkingSize === 0:
-                    alert('Medium Vehicles cannot park to small parking slot.');
+                    alert('Medium Vehicles cannot park in small parking slots.');
                     break;
                 case vehicleSize === 2 && (parkingSize === 0 || parkingSize === 1):
-                    alert('Large Vehicles cannot park to either small or medium parking slots.');
+                    alert('Large Vehicles cannot park in either small or medium parking slots.');
                     break;
                 default:
+                    setParkingSlotInfo({
+                        entryPoint: entryPoint,
+                        occupied: occupied,
+                        parkingSize: parkingSize
+                      });
                     setOccupiedParkingLots(prevOccupiedParkingLots => [...prevOccupiedParkingLots, updatedParkingSlots[slotIndex]]);
+                    setParkingSlots(updatedParkingSlots);
                     setAddEntryPoint(true);
                     break;
-            }
         }
-    }, [leftVehicles, setOccupiedParkingLots, setAddEntryPoint, vehicleSize]);
+        
+        }
+    }, [leftVehicles, parkingSlots, setOccupiedParkingLots, setAddEntryPoint, vehicleSize]);
+    
     
 
-      const unparkVehicle = (slotId) => {
+    const unparkVehicle = (slotId) => {
         setConfirmation(true);
         occupiedParkingLots.map(slot => {
             if (slot.id === slotId && slot.vehicle && confirmation) {
@@ -109,8 +115,9 @@ const ParkingSystem = () => {
             setLeftVehicles(prevLeftVehicles => [...prevLeftVehicles, convertedTime]);
         }
     }; 
-    
-
+    useEffect(() => {
+        console.log(parkingSlotInfo);
+    }, [parkingSlotInfo]);
     useEffect(() => {
         const sortParkingSlots = () => {
             if (filteredParkingSlots.length > 0 && selectedEntryPoint) {
@@ -215,7 +222,6 @@ const ParkingSystem = () => {
                                                     onClick={() => { 
                                                         handleVehicleLeave(slot.vehicle.parkedTime, currentTime);
                                                         setConfirmation(false);
-                                                        // handleHideSlot(slot.id);
                                                     }}
                                                 >
                                                         Will get Back

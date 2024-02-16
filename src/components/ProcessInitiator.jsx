@@ -18,6 +18,7 @@ const ProcessInitiator = ({
             setDefaultButtons([...defaultButtons, nextLetterToAdd]);
         }
     }
+
     return (
        <>
         <div className='flex self-left'>
@@ -29,38 +30,43 @@ const ProcessInitiator = ({
                         sx={{ marginX:"10px" }}
                         key={index}
                         variant='contained' 
-                        onClick={() => { handleEntryPointSelect(label); sortParkingSlots }}
+                        onClick={() => { handleEntryPointSelect(label); }}
                     >
                     {label}
                     </Button>
                 ))
             )}
 
-            
-            
             {selectedEntryPoint && (
                 <div className='mt-10 text-left space-y-5'>
                     <Typography variant='h6'>Parking Slots near Entry Point {selectedEntryPoint}:</Typography>
                     <ul>
                     {sortedParkingSlots?.map(slot => {
-                    return (
-                        <li key={slot.id}>
-                            <Typography sx={{ marginLeft:"20px" }}>{slot.name} (Distance Unit: {slot.distances[selectedEntryPoint]})</Typography>
-                            <div className='m-5 space-x-5'>
-            
-                                {Object.keys(slot.distances).map((entryPoint, index) => (
-                                    <Button 
-                                        key={index} 
-                                        variant='contained' 
-                                        onClick={() => parkVehicle(slot.id, slot.parkingSize, entryPoint, true)}
-                                    >
-                                        {slot.name}
-                                    </Button>
-                                ))}
-                            </div>
-                        </li>
-                    );
-                })}
+                        return (
+                            <li key={slot.id}>
+                                <Typography sx={{ marginLeft:"20px" }}>{slot.name} (Distance Unit: {slot.distances[selectedEntryPoint]})</Typography>
+                                <div className='m-5 space-x-5'>
+                                    {Object.keys(slot.distances).map((entryPoint, index) => {
+                                        return (
+                                            < >
+                                                <Button 
+                                                    key={index} 
+                                                    variant='contained' 
+                                                    onClick={() => parkVehicle(slot.id, slot.parkingSize, entryPoint, true)}
+                                                >
+                                                    {slot.name}
+                                                </Button>
+                                                <span>{slot.occupied ? "Occupied" : ""}</span>
+                                            </>
+                                            
+                                             
+                                        )
+                                        
+                                    })}
+                                </div>
+                            </li>
+                        );
+                    })}
                     </ul>
                 </div>
             )}

@@ -11,6 +11,7 @@ const formatTime = (parkedTime, currentTime, dayjs) => {
 const calculateFee = (parkedTime, vehicleSize, leftVehicles) => {
     const parkingDurationMilliseconds = dayjs().diff(parkedTime); // Calculate parked duration in milliseconds
     const hoursPassed = Math.floor(parkingDurationMilliseconds / (1000 * 60 * 60));
+    const rateIncrease = hoursPassed >= 3;
 
     const leftVehicle = leftVehicles?.find(vehicle => vehicle.parkedTime === parkedTime);
     if (leftVehicle) {
@@ -21,13 +22,13 @@ const calculateFee = (parkedTime, vehicleSize, leftVehicles) => {
     let flatRateFee;
 
     switch (true) {
-        case vehicleSize === 0 && hoursPassed >= 3:
+        case vehicleSize === 0 && rateIncrease:
             flatRateFee = 20;
             break;
-        case vehicleSize === 1 && hoursPassed >= 3:
+        case vehicleSize === 1 && rateIncrease:
             flatRateFee = 60;
             break;
-        case vehicleSize === 2 && hoursPassed >= 3:
+        case vehicleSize === 2 && rateIncrease:
             flatRateFee = 100;
             break;
         default:
