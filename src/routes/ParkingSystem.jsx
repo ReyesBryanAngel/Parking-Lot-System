@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, Typography } from "@mui/material";
+import { Button, Typography, Card } from "@mui/material";
 import dayjs from 'dayjs';
 import staticParkingSlots from '../static/staticParkingSlots';
 import duration from 'dayjs/plugin/duration';
@@ -191,63 +191,69 @@ const ParkingSystem = () => {
                     staticParkingSlots={staticParkingSlots}
                 />
             </div>
-            <div>
+            <div className='text-left mt-10'>
                 {occupiedParkingLots?.length > 0 && (
-                    <div className='grid gap-16 md:grid-cols-3'>
-                        {occupiedParkingLots.map((slot) => {
-                            const isAreaSelected = (
-                                parkingAreaLocator.entryPoint === slot.entryPoint &&
-                                parkingAreaLocator.parkingLotName === slot.parkingLotName &&
-                                parkingAreaLocator.parkingSize === slot.parkingSize
-                            );
-                            return (
-                                slot.vehicle && (
-                                    <div key={slot.id} className='mt-20'>
-                                        <Typography>{vehicleSizeSetter(vehicleSize)} (Park Area: {slot.parkingLotName}) <br/></Typography> 
+                <>
+                    <Typography variant='h6'>Vehicle Records</Typography><div className='grid gap-16 md:grid-cols-3'>
+                    {occupiedParkingLots.map((slot) => {
+                        const isAreaSelected = (
+                            parkingAreaLocator.entryPoint === slot.entryPoint &&
+                            parkingAreaLocator.parkingLotName === slot.parkingLotName &&
+                            parkingAreaLocator.parkingSize === slot.parkingSize
+                        );
+                        return (
+                            slot.vehicle && (
+                                <Card sx={{ padding: "20px", width: "300px", marginTop: "40px" }}>
+                                    <div key={slot.id}>
+                                        <Typography>{vehicleSizeSetter(vehicleSize)} (Park Area: {slot.parkingLotName})</Typography> <br />
+                                        <Typography>Entrance Record: {slot.entryPoint}</Typography>
                                         <div className='flex items-center justify-center mt-5 space-x-5 '>
-                                            <Button variant='contained' 
-                                                onClick={() => { 
+                                            <Button variant='contained'
+                                                onClick={() => {
                                                     handleSlotUpdate(
-                                                        slot.parkingLotName, 
-                                                        occupiedParkingLots, 
+                                                        slot.parkingLotName,
+                                                        occupiedParkingLots,
                                                         setParkingAreaLocator,
                                                         slot.entryPoint
-                                                    )
-                                                }}
+                                                    );
+                                                } }
                                             >
                                                 Unpark
                                             </Button>
                                             <Typography>{formatTime(slot.vehicle.parkedTime, currentTime, dayjs)} /&#8369;{slot.fee}</Typography>
                                         </div>
                                         {isAreaSelected &&
-                                         (
-                                             <div className='flex gap-5 mt-10'>
-                                                <Button variant='contained' 
-                                                    onClick={() => { 
-                                                        unparkVehicle(slot.parkingLotName, slot.entryPoint, slot.parkingSize);
-                                                    }}>
+                                            (
+                                                <div className='flex gap-5 mt-10'>
+                                                    <Button variant='contained'
+                                                        onClick={() => {
+                                                            unparkVehicle(slot.parkingLotName, slot.entryPoint, slot.parkingSize);
+                                                        } }>
                                                         Pay
                                                     </Button>
-                                                <Button variant='contained' 
-                                                    onClick={() => { 
-                                                        handleVehicleLeave(slot.vehicle.parkedTime, currentTime, setLeftVehicles);
-                                                        setConfirmation(false);
-                                                    }}
-                                                >
+                                                    <Button variant='contained'
+                                                        onClick={() => {
+                                                            handleVehicleLeave(slot.vehicle.parkedTime, currentTime, setLeftVehicles);
+                                                            setConfirmation(false);
+                                                        } }
+                                                    >
                                                         Will get Back
-                                                </Button>
-                                            </div>
-                                        )}
+                                                    </Button>
+                                                </div>
+                                            )}
                                         {isAreaSelected && confirmation && (
-                                             <div>
+                                            <div className='mt-5'>
                                                 <Typography>Total amount of charged is: &#8369;{slot.fee}</Typography>
                                             </div>
                                         )}
                                     </div>
-                                )
-                            )   
-                        })}
-                    </div>
+                                </Card>
+
+                            )
+                        );
+                    })}
+                </div>
+                </>
                 )}
             </div>
         </div>

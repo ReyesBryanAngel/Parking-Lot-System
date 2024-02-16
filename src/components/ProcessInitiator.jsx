@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Typography } from "@mui/material";
+import { Button, Typography, Card } from "@mui/material";
 import { duplicateParkingLocator, handleEntryPointSelect } from './GlobalFunction';
 
 const ProcessInitiator = ({
@@ -25,46 +25,48 @@ const ProcessInitiator = ({
     
     return (
        <>
-            <div className='flex self-left'>
+            <div className='flex'>
                 <Button disabled={!addEntryPoint} variant='contained' onClick={handleAddEntryPoint}>Add Entry Point</Button>
             </div>
             {vehicleSize !== null && (
                 defaultButtons.map((entryPoint, index) => (
                     <Button
-                        sx={{ marginX:"10px" }}
+                        sx={{ marginX:"20px" }}
                         key={index}
                         variant='contained' 
                         onClick={() => { handleEntryPointSelect(entryPoint, setSelectedEntryPoint, staticParkingSlots); }}
                     >
-                    {entryPoint}
+                        {entryPoint}
                     </Button>
                 ))
             )}
             {selectedEntryPoint && (
-                <div className='mt-10 text-left space-y-5'>
+                <div className='mt-10 text-left space-y-10'>
                     <Typography variant='h6'>Parking Slots near Entry Point {selectedEntryPoint}:</Typography>
                     <ul>
                         {sortedParkingSlots?.map(slot => {
                             return (
                                 <li key={slot.id}>
                                     <Typography sx={{ marginLeft: "20px" }}>{slot.name}</Typography>
-                                    <div className='m-5 space-x-5'>
+                                    <div className='m-5 space-x-5 grid grid-cols-3 mt-10'>
                                         {Object.entries(slot.distances).map(([parkingLotName, distanceValue]) => {
                                            
                                             if ((slot.name === "Small Parking" && parkingLotName.startsWith("SP")) ||
                                                 (slot.name === "Medium Parking" && parkingLotName.startsWith("MP")) ||
                                                 (slot.name === "Large Parking" && parkingLotName.startsWith("LP"))) {
                                                 return (
-                                                    <Button
-                                                        disabled={duplicateParkingLocator(parkingSlotInfo, selectedEntryPoint, parkingLotName, slot.parkingSize)}
-                                                        key={parkingLotName}
-                                                        variant='contained'
-                                                        onClick={() => {
-                                                            parkVehicle(slot.id, slot.parkingSize, parkingLotName);
-                                                        }}
-                                                    >
-                                                        {parkingLotName}: {`${distanceValue} distance unit`} <br/>
-                                                    </Button>
+                                                    <Card key={parkingLotName} sx={{  padding:"40px", width:"300px" }}>
+                                                        <Button
+                                                            disabled={duplicateParkingLocator(parkingSlotInfo, selectedEntryPoint, parkingLotName, slot.parkingSize)}
+                                                            variant='contained'
+                                                            onClick={() => {
+                                                                parkVehicle(slot.id, slot.parkingSize, parkingLotName);
+                                                            }}
+                                                        >
+                                                            {parkingLotName}: {`${distanceValue} distance unit`} <br/>
+                                                        </Button>
+                                                    </Card>
+                                                
                                                 );
                                             } else {
                                                 return null;
