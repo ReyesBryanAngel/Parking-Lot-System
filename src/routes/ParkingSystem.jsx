@@ -5,13 +5,12 @@ import duration from 'dayjs/plugin/duration';
 import VehicleSelection from '../components/VehicleSelection';
 import staticParkingSlots from '../static/staticParkingSlots';
 import ProcessInitiator from '../components/ProcessInitiator';
-import isEqual from 'lodash/isEqual';
 import { 
     calculateFee, 
     duplicateParkingLocator, 
     formatTime, 
-    getSizeLabel, 
-    handleSlotUpdate, 
+    handleSlotUpdate,
+    vehicleSizeSetter, 
 } from '../components/GlobalFunction';
 dayjs.extend(duration);
 
@@ -23,23 +22,23 @@ const ParkingSystem = () => {
     const [vehicleSize, setVehicleSize] = useState(null);
     const [leftVehicles, setLeftVehicles] = useState([]);
     const [currentTime, setCurrentTime] = useState(Date.now());
-    const [totalCharge, setTotalCharge] = useState(0);
     const [addEntryPoint, setAddEntryPoint] = useState(false);
     const [parkingSlots, setParkingSlots] = useState(staticParkingSlots);
     const [parkingSlotInfo, setParkingSlotInfo] = useState([]);
+    const [parkingAreaLocator, setParkingAreaLocator] = useState([]);
 
     const handleVehicleSizeChange = (event) => {
         setVehicleSize(event.target.value);
     };
     
-    const parkVehicle = useCallback((slotId, parkingSize, occupied) => {
+    const parkVehicle = useCallback((slotId, parkingSize, parkingLotName) => {
         const slotIndex = parkingSlots.findIndex(slot => slot.id === slotId);
         const newState = {
             entryPoint: selectedEntryPoint,
-            occupied: occupied,
-            parkingSize: parkingSize
+            parkingSize: parkingSize,
+            parkingLotName: parkingLotName
         };
-        if (duplicateParkingLocator(parkingSlotInfo, newState.entryPoint, newState.occupied, newState.parkingSize)) {
+        if (duplicateParkingLocator(parkingSlotInfo, newState.entryPoint, parkingLotName, newState.parkingSize)) {
             alert('Parking is currently occupied');
         } else {
             const updatedParkingSlots = [...parkingSlots];
@@ -53,7 +52,7 @@ const ParkingSystem = () => {
                     parkedTime: parkedTime,      
                 },
                 fee: charge,
-                occupied: occupied,
+                parkingLotName: parkingLotName
             };
             switch (true) {
                 case vehicleSize === 1 && parkingSize === 0:
@@ -73,38 +72,57 @@ const ParkingSystem = () => {
         }
         
         }
-    }, [leftVehicles, parkingSlots, setOccupiedParkingLots, setAddEntryPoint, vehicleSize, parkingSlotInfo, selectedEntryPoint]);
-    
+    }, [leftVehicles, parkingSlots, parkingSlotInfo, setOccupiedParkingLots, setAddEntryPoint, vehicleSize, selectedEntryPoint]);
     
 
-    const unparkVehicle = (slotId) => {
+    const unparkVehicle = (parkingLotName, entryPoint, parkingSize) => {
         setConfirmation(true);
-        occupiedParkingLots.map(slot => {
-            if (slot.id === slotId && slot.vehicle && confirmation) {
-                const { size, parkedTime } = slot.vehicle;
-                const charge = calculateFee(parkedTime, size, leftVehicles);
-                setTotalCharge(charge);
-                setTimeout(() => {
+    
+        setOccupiedParkingLots(prevState => {
+            return prevState.map(occupiedSlot => {
+                if (occupiedSlot.parkingLotName === parkingLotName && 
+                    occupiedSlot.entryPoint === entryPoint && 
+                    occupiedSlot.parkingSize === parkingSize
+                ) {
+                    const { size, parkedTime } = occupiedSlot.vehicle;
+                    const charge = calculateFee(parkedTime, size, leftVehicles);
                     const updatedSlot = {
-                        ...slot,
-                        vehicle: null,
-                        fee: charge,
-                        occupied: false
+                        ...occupiedSlot,
+                        fee: charge
                     };
-                    setOccupiedParkingLots(prevState => {
-                        return prevState.map(prevSlot => {
-                            if (prevSlot.id === slotId) {
-                                return updatedSlot;
-                            }
-                            return prevSlot;
+                    setTimeout(() => {
+                        setConfirmation(false);
+                        setOccupiedParkingLots(prevState => {
+                            const updatedOccupied = prevState.filter(prevSlot => 
+                                !(prevSlot.parkingLotName === parkingLotName && 
+                                prevSlot.entryPoint === entryPoint)
+                            );
+                            
+                            const updatedParkingSlotInfo = updatedOccupied.map(slot => ({
+                                entryPoint: slot.entryPoint,
+                                parkingSize: slot.parkingSize,
+                                parkingLotName: slot.parkingLotName
+                            }));
+                            
+                            setParkingSlotInfo(prevParkingSlotInfo =>
+                                prevParkingSlotInfo.filter(si =>
+                                    updatedParkingSlotInfo.some(updatedSlot =>
+                                        updatedSlot.entryPoint === si.entryPoint &&
+                                        updatedSlot.parkingLotName === si.parkingLotName
+                                    )
+                                )
+                            );
+                            
+                            return updatedOccupied;
                         });
-                    });
-                }, 3000);
-            }
-            return slot;
+                    }, 2000);
+    
+                    return updatedSlot;
+                }
+                return occupiedSlot;
+            });
         });
     };
-    
     
     const handleVehicleLeave = (parkedTime) => {
         const elapsedTime = currentTime - parkedTime;
@@ -115,6 +133,7 @@ const ParkingSystem = () => {
     }; 
 
     useEffect(() => {
+        console.log(vehicleSize);
         const sortParkingSlots = () => {
             if (parkingSlots.length > 0 && selectedEntryPoint) {
                 const sortedSlots = parkingSlots.slice().sort((a, b) => {
@@ -125,8 +144,6 @@ const ParkingSystem = () => {
         };
 
         sortParkingSlots();
-       
-
         const updateParkingLots = () => {
             setOccupiedParkingLots(prevOccupiedParkingLots => {
                 return prevOccupiedParkingLots.map(slot => {
@@ -156,13 +173,13 @@ const ParkingSystem = () => {
             setCurrentTime(Date.now());
         }, 1000);
     
-        const interval = setInterval(updateParkingLots, 5000);
+        const interval = setInterval(updateParkingLots, 2000);
     
         return () => {
             clearInterval(timer);
             clearInterval(interval);
         };
-    }, [parkingSlotInfo, leftVehicles, selectedEntryPoint, parkingSlots]);
+    }, [leftVehicles, selectedEntryPoint, parkingSlots, vehicleSize]);
 
 
     const handleEntryPointSelect = (entryPoint) => {
@@ -182,9 +199,6 @@ const ParkingSystem = () => {
         });
       };
       
-      
-      
-
     return (
         <div className='flex flex-col items-center justify-evenly'>
             <div className='space-y-10'>
@@ -199,35 +213,45 @@ const ParkingSystem = () => {
                     sortedParkingSlots={sortedParkingSlots}
                     parkVehicle={parkVehicle}
                     addEntryPoint={addEntryPoint}
+                    parkingSlotInfo={parkingSlotInfo}
                 />
             </div>
             <div>
                 {occupiedParkingLots?.length > 0 && (
                     <div className='grid gap-16 md:grid-cols-3'>
                         {occupiedParkingLots.map((slot) => {
+                            const isAreaSelected = (
+                                parkingAreaLocator.entryPoint === slot.entryPoint &&
+                                parkingAreaLocator.parkingLotName === slot.parkingLotName &&
+                                parkingAreaLocator.parkingSize === slot.parkingSize
+                            );
                             return (
                                 slot.vehicle && (
                                     <div key={slot.id} className='mt-20'>
-                                        <Typography>{slot.name.replace("Parking", "Vehicle")} (Size: {getSizeLabel(slot.vehicle.size)}) <br/></Typography> 
+                                        <Typography>{vehicleSizeSetter(vehicleSize)} (Park Area: {slot.parkingLotName}) <br/></Typography> 
                                         <div className='flex items-center justify-center mt-5 space-x-5 '>
                                             <Button variant='contained' 
                                                 onClick={() => { 
-                                                    handleSlotUpdate(slot.id, setConfirmation, setOccupiedParkingLots, { confirmation: true })
+                                                    handleSlotUpdate(
+                                                        slot.parkingLotName, 
+                                                        occupiedParkingLots, 
+                                                        setParkingAreaLocator,
+                                                        slot.entryPoint
+                                                    )
                                                 }}
                                             >
                                                 Unpark
                                             </Button>
-                                            <Typography>{formatTime(slot.vehicle.parkedTime, currentTime, dayjs)} / &#8369;{slot.fee}</Typography>
+                                            <Typography>{formatTime(slot.vehicle.parkedTime, currentTime, dayjs)} /&#8369;{slot.fee}</Typography>
                                         </div>
-                                        {slot.confirmation && (
+                                        {isAreaSelected &&
+                                         (
                                              <div className='flex gap-5 mt-10'>
                                                 <Button variant='contained' 
                                                     onClick={() => { 
-                                                        unparkVehicle(slot.id); 
-                                                        setConfirmation(false);
-                                                        handleSlotUpdate(slot.id, setConfirmation, setOccupiedParkingLots, { charged: true });
+                                                        unparkVehicle(slot.parkingLotName, slot.entryPoint, slot.parkingSize);
                                                     }}>
-                                                        Leave
+                                                        Pay
                                                     </Button>
                                                 <Button variant='contained' 
                                                     onClick={() => { 
@@ -239,9 +263,9 @@ const ParkingSystem = () => {
                                                 </Button>
                                             </div>
                                         )}
-                                        {slot.charged && (
+                                        {isAreaSelected && confirmation && (
                                              <div>
-                                                <Typography>The total amount of charged is: {totalCharge}</Typography>
+                                                <Typography>Total amount of charged is: &#8369;{slot.fee}</Typography>
                                             </div>
                                         )}
                                     </div>

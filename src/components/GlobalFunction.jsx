@@ -1,7 +1,4 @@
 import dayjs from 'dayjs';
-const handleVehicleSizeChange = (event, setVehicleSize) => {
-    setVehicleSize(event.target.value);
-};
 
 const formatTime = (parkedTime, currentTime, dayjs) => {
     const elapsedTime = currentTime - parkedTime;
@@ -63,38 +60,64 @@ const getSizeLabel = (size) => {
     }
 }
 
-const duplicateParkingLocator = (parkingSlotInfo, entryPoint, occupied, parkingSize) => {
+const vehicleSizeSetter = (vehicleSize) => {
+    switch (true) {
+        case vehicleSize == 0:
+            return  "Small Vehicle";
+        case vehicleSize == 1:
+            return  "Medium Vehicla";
+        case vehicleSize == 2 :
+            return "Large Vehicle";
+        default:
+            return "Unkown";
+
+        
+    }
+}
+
+const duplicateParkingLocator = (parkingSlotInfo, entryPoint, parkingLotName, parkingSize) => {
     const isDuplicate = parkingSlotInfo.some(state => {
         return (
           state.entryPoint === entryPoint &&
-          state.occupied === occupied &&
+          state.parkingLotName === parkingLotName &&
           state.parkingSize === parkingSize
         );
     });
 
+
     return isDuplicate;
 }
 
-const handleSlotUpdate = (slotId, setConfirmation, setOccupiedParkingLots, updateProps) => {
-    setConfirmation(true);
-    setOccupiedParkingLots(prevSlots => {
-        return prevSlots.map(slot => {
-            if (slot.id === slotId) {
-                return { ...slot, ...updateProps };
-            }
-            return slot;
-        });
-    });
+const handleSlotUpdate = (
+    parkingLotName, 
+    occupiedParkingLots, 
+    setParkingAreaLocator, 
+    entryPoint
+) => {
+    const locateVehicleArea = occupiedParkingLots.find(slot =>
+        slot.entryPoint === entryPoint &&
+        slot.parkingLotName === parkingLotName
+    );
+
+    if (locateVehicleArea) {
+        const updatedParkingAreaLocator = {
+            entryPoint: locateVehicleArea.entryPoint,
+            parkingLotName: locateVehicleArea.parkingLotName,
+            parkingSize: locateVehicleArea.parkingSize
+        };
+        console.log(updatedParkingAreaLocator);
+
+        setParkingAreaLocator(updatedParkingAreaLocator);
+    }
 };
 
-
 export {
-    handleVehicleSizeChange,
     formatTime,
     calculateFee,
     getSizeLabel,
     handleSlotUpdate,
-    duplicateParkingLocator
+    duplicateParkingLocator,
+    vehicleSizeSetter
 }
 
 

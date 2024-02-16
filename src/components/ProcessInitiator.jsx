@@ -1,7 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { Button, Typography } from "@mui/material";
+import { duplicateParkingLocator } from './GlobalFunction';
 
-const ProcessInitiator = ({vehicleSize, handleEntryPointSelect, selectedEntryPoint, sortedParkingSlots, parkVehicle, addEntryPoint}) => {
+const ProcessInitiator = ({
+    vehicleSize, 
+    handleEntryPointSelect, 
+    selectedEntryPoint, 
+    sortedParkingSlots, 
+    parkVehicle, 
+    addEntryPoint, 
+    parkingSlotInfo, 
+}) => {
     const [defaultButtons, setDefaultButtons] = useState(['A', 'B', 'C']);
     
 
@@ -12,6 +21,7 @@ const ProcessInitiator = ({vehicleSize, handleEntryPointSelect, selectedEntryPoi
             setDefaultButtons([...defaultButtons, nextLetterToAdd]);
         }
     }
+    
     return (
        <>
             <div className='flex self-left'>
@@ -38,20 +48,21 @@ const ProcessInitiator = ({vehicleSize, handleEntryPointSelect, selectedEntryPoi
                                 <li key={slot.id}>
                                     <Typography sx={{ marginLeft: "20px" }}>{slot.name}</Typography>
                                     <div className='m-5 space-x-5'>
-                                        {Object.entries(slot.distances).map(([distanceName, distanceValue]) => {
+                                        {Object.entries(slot.distances).map(([parkingLotName, distanceValue]) => {
                                            
-                                            if ((slot.name === "Small Parking" && distanceName.startsWith("SP")) ||
-                                                (slot.name === "Medium Parking" && distanceName.startsWith("MP")) ||
-                                                (slot.name === "Large Parking" && distanceName.startsWith("LP"))) {
+                                            if ((slot.name === "Small Parking" && parkingLotName.startsWith("SP")) ||
+                                                (slot.name === "Medium Parking" && parkingLotName.startsWith("MP")) ||
+                                                (slot.name === "Large Parking" && parkingLotName.startsWith("LP"))) {
                                                 return (
                                                     <Button
-                                                        key={distanceName}
+                                                        disabled={duplicateParkingLocator(parkingSlotInfo, selectedEntryPoint, parkingLotName, slot.parkingSize)}
+                                                        key={parkingLotName}
                                                         variant='contained'
                                                         onClick={() => {
-                                                            parkVehicle(slot.id, slot.parkingSize, true);
+                                                            parkVehicle(slot.id, slot.parkingSize, parkingLotName);
                                                         }}
                                                     >
-                                                        {distanceName}: {`${distanceValue} distance unit`}
+                                                        {parkingLotName}: {`${distanceValue} distance unit`} <br/>
                                                     </Button>
                                                 );
                                             } else {
