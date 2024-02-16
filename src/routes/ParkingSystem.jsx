@@ -8,6 +8,7 @@ import ProcessInitiator from '../components/ProcessInitiator';
 import isEqual from 'lodash/isEqual';
 import { 
     calculateFee, 
+    duplicateParkingLocator, 
     formatTime, 
     getSizeLabel, 
     handleSlotUpdate, 
@@ -27,11 +28,7 @@ const ParkingSystem = () => {
     const [totalCharge, setTotalCharge] = useState(0);
     const [addEntryPoint, setAddEntryPoint] = useState(false);
     const [parkingSlots, setParkingSlots] = useState(staticParkingSlots);
-    const [parkingSlotInfo, setParkingSlotInfo] = useState([{
-        entryPoint: null,
-        occupied: null,
-        parkingSize: null
-    }])
+    const [parkingSlotInfo, setParkingSlotInfo] = useState([]);
 
     const handleVehicleSizeChange = (event) => {
         setVehicleSize(event.target.value);
@@ -39,7 +36,12 @@ const ParkingSystem = () => {
     
     const parkVehicle = useCallback((slotId, parkingSize, entryPoint, occupied) => {
         const slotIndex = parkingSlots.findIndex(slot => slot.id === slotId);
-        if (isEqual({ entryPoint, occupied, parkingSize }, parkingSlotInfo)) {
+        const newState = {
+            entryPoint: entryPoint,
+            occupied: occupied,
+            parkingSize: parkingSize
+        };
+        if (duplicateParkingLocator(parkingSlotInfo, newState.entryPoint, newState.occupied, newState.parkingSize)) {
             alert('Alert Message: Your conditions for alert!');
         } else {
             const updatedParkingSlots = [...parkingSlots];
@@ -63,11 +65,10 @@ const ParkingSystem = () => {
                     alert('Large Vehicles cannot park in either small or medium parking slots.');
                     break;
                 default:
-                    setParkingSlotInfo({
-                        entryPoint: entryPoint,
-                        occupied: occupied,
-                        parkingSize: parkingSize
-                      });
+                    setParkingSlotInfo(prevState =>
+                        prevState.length === 0 ? [newState] : [...prevState, newState]
+                    );
+                    
                     setOccupiedParkingLots(prevOccupiedParkingLots => [...prevOccupiedParkingLots, updatedParkingSlots[slotIndex]]);
                     setParkingSlots(updatedParkingSlots);
                     setAddEntryPoint(true);
@@ -115,9 +116,7 @@ const ParkingSystem = () => {
             setLeftVehicles(prevLeftVehicles => [...prevLeftVehicles, convertedTime]);
         }
     }; 
-    useEffect(() => {
-        console.log(parkingSlotInfo);
-    }, [parkingSlotInfo]);
+    
     useEffect(() => {
         const sortParkingSlots = () => {
             if (filteredParkingSlots.length > 0 && selectedEntryPoint) {
@@ -208,7 +207,7 @@ const ParkingSystem = () => {
                                             </Button>
                                             <Typography>{formatTime(slot.vehicle.parkedTime, currentTime, dayjs)} / &#8369;{slot.fee}</Typography>
                                         </div>
-                                        {slot.confirmation && (
+                                        {slot.confirmation && slot.id && (
                                              <div className='flex gap-5 mt-10'>
                                                 <Button variant='contained' 
                                                     onClick={() => { 

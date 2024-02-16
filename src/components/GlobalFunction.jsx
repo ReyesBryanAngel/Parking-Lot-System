@@ -77,6 +77,18 @@ const updateFilteredParkingSlots = (entryPoint, parkingSlots, setFilteredParking
     setFilteredParkingSlots(updatedSlots);
 };
 
+const duplicateParkingLocator = (parkingSlotInfo, entryPoint, occupied, parkingSize) => {
+    const isDuplicate = parkingSlotInfo.some(state => {
+        return (
+          state.entryPoint === entryPoint &&
+          state.occupied === occupied &&
+          state.parkingSize === parkingSize
+        );
+    });
+
+    return isDuplicate;
+}
+
 const handleSlotUpdate = (slotId, setConfirmation, setOccupiedParkingLots, updateProps) => {
     setConfirmation(true);
     setOccupiedParkingLots(prevSlots => {
@@ -96,7 +108,8 @@ export {
     calculateFee,
     getSizeLabel,
     updateFilteredParkingSlots,
-    handleSlotUpdate
+    handleSlotUpdate,
+    duplicateParkingLocator
 }
 
 
