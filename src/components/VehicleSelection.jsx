@@ -5,7 +5,7 @@ const VehicleSelection = ({vehicleSize, handleVehicleSizeChange }) => {
     return (
         <div>
             <FormControl sx={{ width:"300px" }}>
-                <InputLabel id="demo-simple-select-label">Select Vehicle</InputLabel>
+                <InputLabel id="demo-simple-select-label">Select Vehicle size</InputLabel>
                 <Select
                     labelId="demo-simple-select-label"
                     id="demo-simple-select"

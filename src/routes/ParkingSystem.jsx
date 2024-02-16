@@ -58,7 +58,7 @@ const ParkingSystem = () => {
                     alert('Medium Vehicles cannot park to small parking slot.');
                     break;
                 case vehicleSize === 2 && (parkingSize === 0 || parkingSize === 1):
-                    alert('Large Parking cannot park to either small or medium parking slots.');
+                    alert('Large Vehicles cannot park to either small or medium parking slots.');
                     break;
                 default:
                     setOccupiedParkingLots(prevOccupiedParkingLots => [...prevOccupiedParkingLots, updatedParkingSlots[slotIndex]]);
@@ -185,7 +185,7 @@ const ParkingSystem = () => {
                             return (
                                 !hiddenSlots[slot.id] && slot.vehicle && (
                                     <div key={slot.id} className='mt-20'>
-                                        <Typography>{slot.name} (Size: {getSizeLabel(slot.vehicle.size)}) <br/></Typography> 
+                                        <Typography>{slot.name.replace("Parking", "Vehicle")} (Size: {getSizeLabel(slot.vehicle.size)}) <br/></Typography> 
                                         <div className='flex items-center justify-center mt-5 space-x-5 '>
                                             <Button variant='contained' 
                                                 onClick={() => { 
