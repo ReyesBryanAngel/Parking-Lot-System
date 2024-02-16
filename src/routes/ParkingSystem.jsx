@@ -42,7 +42,7 @@ const ParkingSystem = () => {
             parkingSize: parkingSize
         };
         if (duplicateParkingLocator(parkingSlotInfo, newState.entryPoint, newState.occupied, newState.parkingSize)) {
-            alert('Alert Message: Your conditions for alert!');
+            alert('Parking is currently occupied');
         } else {
             const updatedParkingSlots = [...parkingSlots];
             const parkedTime = dayjs();
@@ -116,7 +116,7 @@ const ParkingSystem = () => {
             setLeftVehicles(prevLeftVehicles => [...prevLeftVehicles, convertedTime]);
         }
     }; 
-    
+
     useEffect(() => {
         const sortParkingSlots = () => {
             if (filteredParkingSlots.length > 0 && selectedEntryPoint) {
