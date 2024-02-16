@@ -11,9 +11,6 @@ const ProcessInitiator = ({
 }) => {
     const [defaultButtons, setDefaultButtons] = useState(['A', 'B', 'C']);
     
-    useEffect(() => {
-        console.log(sortedParkingSlots);
-    })
     const handleAddEntryPoint = () => {
         const lastLetter = defaultButtons[defaultButtons.length - 1];
         const nextLetterToAdd =  String.fromCharCode(lastLetter.charCodeAt(0) + 1);
