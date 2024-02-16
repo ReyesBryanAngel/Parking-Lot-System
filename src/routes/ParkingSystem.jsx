@@ -12,14 +12,12 @@ import {
     formatTime, 
     getSizeLabel, 
     handleSlotUpdate, 
-    updateFilteredParkingSlots 
 } from '../components/GlobalFunction';
 dayjs.extend(duration);
 
 const ParkingSystem = () => {
     const [selectedEntryPoint, setSelectedEntryPoint] = useState(null);
     const [occupiedParkingLots, setOccupiedParkingLots] = useState([]);
-    const [filteredParkingSlots, setFilteredParkingSlots] = useState([]);
     const [sortedParkingSlots, setSortedParkingSlots] = useState([]);
     const [confirmation, setConfirmation] = useState(false);
     const [vehicleSize, setVehicleSize] = useState(null);
@@ -34,10 +32,10 @@ const ParkingSystem = () => {
         setVehicleSize(event.target.value);
     };
     
-    const parkVehicle = useCallback((slotId, parkingSize, entryPoint, occupied) => {
+    const parkVehicle = useCallback((slotId, parkingSize, occupied) => {
         const slotIndex = parkingSlots.findIndex(slot => slot.id === slotId);
         const newState = {
-            entryPoint: entryPoint,
+            entryPoint: selectedEntryPoint,
             occupied: occupied,
             parkingSize: parkingSize
         };
@@ -49,13 +47,13 @@ const ParkingSystem = () => {
             const charge = calculateFee(parkedTime, parkingSize, leftVehicles);
             updatedParkingSlots[slotIndex] = {
                 ...updatedParkingSlots[slotIndex],
-                entryPoint: entryPoint,
+                entryPoint: selectedEntryPoint,
                 vehicle: {
                     size: parkingSize,
                     parkedTime: parkedTime,      
                 },
                 fee: charge,
-                occupied: occupied
+                occupied: occupied,
             };
             switch (true) {
                 case vehicleSize === 1 && parkingSize === 0:
@@ -68,7 +66,6 @@ const ParkingSystem = () => {
                     setParkingSlotInfo(prevState =>
                         prevState.length === 0 ? [newState] : [...prevState, newState]
                     );
-                    
                     setOccupiedParkingLots(prevOccupiedParkingLots => [...prevOccupiedParkingLots, updatedParkingSlots[slotIndex]]);
                     setParkingSlots(updatedParkingSlots);
                     setAddEntryPoint(true);
@@ -76,7 +73,7 @@ const ParkingSystem = () => {
         }
         
         }
-    }, [leftVehicles, parkingSlots, setOccupiedParkingLots, setAddEntryPoint, vehicleSize]);
+    }, [leftVehicles, parkingSlots, setOccupiedParkingLots, setAddEntryPoint, vehicleSize, parkingSlotInfo, selectedEntryPoint]);
     
     
 
@@ -119,8 +116,8 @@ const ParkingSystem = () => {
 
     useEffect(() => {
         const sortParkingSlots = () => {
-            if (filteredParkingSlots.length > 0 && selectedEntryPoint) {
-                const sortedSlots = filteredParkingSlots.slice().sort((a, b) => {
+            if (parkingSlots.length > 0 && selectedEntryPoint) {
+                const sortedSlots = parkingSlots.slice().sort((a, b) => {
                     return a.distances[selectedEntryPoint] - b.distances[selectedEntryPoint];
                 });
                 setSortedParkingSlots(sortedSlots);
@@ -165,13 +162,28 @@ const ParkingSystem = () => {
             clearInterval(timer);
             clearInterval(interval);
         };
-    }, [leftVehicles, filteredParkingSlots, selectedEntryPoint]);
+    }, [parkingSlotInfo, leftVehicles, selectedEntryPoint, parkingSlots]);
 
 
     const handleEntryPointSelect = (entryPoint) => {
         setSelectedEntryPoint(entryPoint);
-        updateFilteredParkingSlots(entryPoint, parkingSlots, setFilteredParkingSlots);  
-    };
+        
+        staticParkingSlots.forEach(slot => {
+          const distances = {};
+          ['SP', 'MP', 'LP'].forEach(prefix => {
+            for (let i = 1; i <= 3; i++) {
+              const key = prefix + i;
+              const distanceFromEntryPoint = Math.abs(entryPoint.charCodeAt(0) - 'A'.charCodeAt(0) + 1 - i);
+              distances[key] = staticParkingSlots[slot.id - 1].distances[key] + distanceFromEntryPoint;
+            }
+          });
+      
+          slot.distances = distances;
+        });
+      };
+      
+      
+      
 
     return (
         <div className='flex flex-col items-center justify-evenly'>
@@ -207,7 +219,7 @@ const ParkingSystem = () => {
                                             </Button>
                                             <Typography>{formatTime(slot.vehicle.parkedTime, currentTime, dayjs)} / &#8369;{slot.fee}</Typography>
                                         </div>
-                                        {slot.confirmation && slot.id && (
+                                        {slot.confirmation && (
                                              <div className='flex gap-5 mt-10'>
                                                 <Button variant='contained' 
                                                     onClick={() => { 

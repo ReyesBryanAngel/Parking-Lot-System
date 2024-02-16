@@ -63,20 +63,6 @@ const getSizeLabel = (size) => {
     }
 }
 
-const updateFilteredParkingSlots = (entryPoint, parkingSlots, setFilteredParkingSlots) => {
-    const updatedSlots = parkingSlots.map(slot => {
-        const distance = Math.floor(Math.random() * 20) + 1;
-        return {
-            ...slot,
-            distances: {
-                ...slot.distances,
-                [entryPoint]: distance
-            }
-        };
-    });
-    setFilteredParkingSlots(updatedSlots);
-};
-
 const duplicateParkingLocator = (parkingSlotInfo, entryPoint, occupied, parkingSize) => {
     const isDuplicate = parkingSlotInfo.some(state => {
         return (
@@ -107,7 +93,6 @@ export {
     formatTime,
     calculateFee,
     getSizeLabel,
-    updateFilteredParkingSlots,
     handleSlotUpdate,
     duplicateParkingLocator
 }
