@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react'
-import { Button, Typography, Card } from "@mui/material";
+import React, { useState } from 'react'
+import { Button, Typography, Card, IconButton } from "@mui/material";
 import { duplicateParkingLocator, handleEntryPointSelect } from './GlobalFunction';
+import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 
 const ProcessInitiator = ({
     vehicleSize,
@@ -28,18 +29,21 @@ const ProcessInitiator = ({
             <div className='flex'>
                 <Button disabled={!addEntryPoint} variant='contained' onClick={handleAddEntryPoint}>Add Entry Point</Button>
             </div>
-            {vehicleSize !== null && (
-                defaultButtons.map((entryPoint, index) => (
-                    <Button
-                        sx={{ marginX:"20px" }}
-                        key={index}
-                        variant='contained' 
-                        onClick={() => { handleEntryPointSelect(entryPoint, setSelectedEntryPoint, staticParkingSlots); }}
-                    >
-                        {entryPoint}
-                    </Button>
-                ))
-            )}
+            <div className='flex'>
+                {vehicleSize !== null && (
+                    defaultButtons.map((entryPoint, index) => (
+                            <Button
+                                size='large'
+                                sx={{ marginX:"20px"}}
+                                key={index}
+                                variant='contained' 
+                                onClick={() => { handleEntryPointSelect(entryPoint, setSelectedEntryPoint, staticParkingSlots); }}
+                            >
+                                {entryPoint}
+                            </Button>  
+                    ))
+                )}
+            </div>
             {selectedEntryPoint && (
                 <div className='mt-10 text-left space-y-10'>
                     <Typography variant='h6'>Parking Slots near Entry Point {selectedEntryPoint}:</Typography>
@@ -47,7 +51,7 @@ const ProcessInitiator = ({
                         {sortedParkingSlots?.map(slot => {
                             return (
                                 <li key={slot.id}>
-                                    <Typography sx={{ marginLeft: "20px" }}>{slot.name}</Typography>
+                                    <Typography variant='h6' sx={{ marginLeft: "20px" }}>{slot.name}</Typography>
                                     <div className='m-5 space-x-5 grid grid-cols-3 mt-10'>
                                         {Object.entries(slot.distances).map(([parkingLotName, distanceValue]) => {
                                            
@@ -55,18 +59,25 @@ const ProcessInitiator = ({
                                                 (slot.name === "Medium Parking" && parkingLotName.startsWith("MP")) ||
                                                 (slot.name === "Large Parking" && parkingLotName.startsWith("LP"))) {
                                                 return (
-                                                    <Card key={parkingLotName} sx={{  padding:"40px", width:"300px" }}>
-                                                        <Button
+                                                    
+                                                        <IconButton
                                                             disabled={duplicateParkingLocator(parkingSlotInfo, selectedEntryPoint, parkingLotName, slot.parkingSize)}
                                                             variant='contained'
                                                             onClick={() => {
                                                                 parkVehicle(slot.id, slot.parkingSize, parkingLotName);
                                                             }}
+                                                            key={parkingLotName}
                                                         >
-                                                            {parkingLotName}: {`${distanceValue} distance unit`} <br/>
-                                                        </Button>
-                                                    </Card>
-                                                
+                                                            <Card sx={{  padding:"40px", width:"300px", textAlign:"left" }}>
+                                                                <Typography variant='h6'>
+                                                                    <div className='flex items-center gap-2'>
+                                                                        <DirectionsCarIcon /> 
+                                                                        {parkingLotName}:   
+                                                                    </div>
+                                                                    {`${distanceValue} Distance Unit`}
+                                                                </Typography>
+                                                            </Card>
+                                                        </IconButton>            
                                                 );
                                             } else {
                                                 return null;
