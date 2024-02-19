@@ -21,7 +21,6 @@ const ParkingSystem = () => {
     const [sortedParkingSlots, setSortedParkingSlots] = useState([]);
     const [confirmation, setConfirmation] = useState(false);
     const [vehicleSize, setVehicleSize] = useState(null);
-    const [leftVehicles, setLeftVehicles] = useState([]);
     const [currentTime, setCurrentTime] = useState(Date.now());
     const [addEntryPoint, setAddEntryPoint] = useState(false);
     const [parkingSlots, setParkingSlots] = useState(staticParkingSlots);
@@ -33,7 +32,7 @@ const ParkingSystem = () => {
     };
     
     const parkVehicle = useCallback((slotId, parkingSize, parkingLotName) => {
-        const slotIndex = parkingSlots.findIndex(slot => slot.id === slotId);
+        const slotIndex = parkingSlots.findIndex(slot => slot?.id === slotId);
         const newState = {
             entryPoint: selectedEntryPoint,
             parkingSize: parkingSize,
@@ -44,7 +43,7 @@ const ParkingSystem = () => {
         } else {
             const updatedParkingSlots = [...parkingSlots];
             const parkedTime = dayjs();
-            const charge = calculateFee(parkedTime, parkingSize, leftVehicles);
+            const charge = calculateFee(parkedTime, parkingSize);
             updatedParkingSlots[slotIndex] = {
                 ...updatedParkingSlots[slotIndex],
                 entryPoint: selectedEntryPoint,
@@ -73,7 +72,7 @@ const ParkingSystem = () => {
         }
         
         }
-    }, [leftVehicles, parkingSlots, parkingSlotInfo, setOccupiedParkingLots, setAddEntryPoint, vehicleSize, selectedEntryPoint]);
+    }, [parkingSlots, parkingSlotInfo, setOccupiedParkingLots, setAddEntryPoint, vehicleSize, selectedEntryPoint]);
     
 
     const unparkVehicle = (parkingLotName, entryPoint, parkingSize) => {
@@ -86,7 +85,7 @@ const ParkingSystem = () => {
                     occupiedSlot.parkingSize === parkingSize
                 ) {
                     const { size, parkedTime } = occupiedSlot.vehicle;
-                    const charge = calculateFee(parkedTime, size, leftVehicles);
+                    const charge = calculateFee(parkedTime, size);
                     const updatedSlot = {
                         ...occupiedSlot,
                         fee: charge
@@ -100,9 +99,9 @@ const ParkingSystem = () => {
                             );
                             
                             const updatedParkingSlotInfo = updatedOccupied.map(slot => ({
-                                entryPoint: slot.entryPoint,
-                                parkingSize: slot.parkingSize,
-                                parkingLotName: slot.parkingLotName
+                                entryPoint: slot?.entryPoint,
+                                parkingSize: slot?.parkingSize,
+                                parkingLotName: slot?.parkingLotName
                             }));
                             
                             setParkingSlotInfo(prevParkingSlotInfo =>
@@ -139,9 +138,9 @@ const ParkingSystem = () => {
         const updateParkingLots = () => {
             setOccupiedParkingLots(prevOccupiedParkingLots => {
                 return prevOccupiedParkingLots.map(slot => {
-                    if (slot.vehicle) {
+                    if (slot?.vehicle) {
                         const { size, parkedTime } = slot.vehicle;
-                        const charge = calculateFee(parkedTime, size, leftVehicles);
+                        const charge = calculateFee(parkedTime, size);
                         return {
                             ...slot,
                             fee: charge
@@ -150,15 +149,6 @@ const ParkingSystem = () => {
                     return slot;
                 });
             });
-    
-            const now = dayjs();
-            const newlyLeftVehicles = leftVehicles.filter(vehicle => {
-                const parkedTime = dayjs(vehicle.parkedTime);
-                return now.diff(parkedTime, 'hours') >= 1;
-            });
-            if (newlyLeftVehicles.length > 0) {
-                setLeftVehicles(prevLeftVehicles => prevLeftVehicles.filter(vehicle => !newlyLeftVehicles.includes(vehicle)));
-            }
         };
     
         const timer = setInterval(() => {
@@ -171,7 +161,7 @@ const ParkingSystem = () => {
             clearInterval(timer);
             clearInterval(interval);
         };
-    }, [leftVehicles, selectedEntryPoint, parkingSlots]);
+    }, [selectedEntryPoint, parkingSlots]);
       
     return (
         <div className='flex flex-col items-center justify-evenly'>
@@ -195,55 +185,55 @@ const ParkingSystem = () => {
                 {occupiedParkingLots?.length > 0 && (
                 <>
                     <Typography variant='h6'>Vehicle Records</Typography><div className='grid gap-16 md:grid-cols-3'>
-                    {occupiedParkingLots.map((slot) => {
+                    {occupiedParkingLots?.map((slot) => {
                         const isAreaSelected = (
-                            parkingAreaLocator.entryPoint === slot.entryPoint &&
-                            parkingAreaLocator.parkingLotName === slot.parkingLotName &&
-                            parkingAreaLocator.parkingSize === slot.parkingSize
+                            parkingAreaLocator.entryPoint === slot?.entryPoint &&
+                            parkingAreaLocator.parkingLotName === slot?.parkingLotName &&
+                            parkingAreaLocator.parkingSize === slot?.parkingSize
                         );
                         return (
-                            slot.vehicle && (
+                            slot?.vehicle && (
                                 <Card sx={{ padding: "20px", width: "300px", marginTop: "40px" }}>
-                                    <div key={slot.id}>
-                                        <Typography>{vehicleSizeSetter(vehicleSize)} (Park Area: {slot.parkingLotName})</Typography> <br />
-                                        <Typography>Entrance Record: {slot.entryPoint}</Typography>
+                                    <div key={slot?.id}>
+                                        <Typography>{vehicleSizeSetter(vehicleSize)} (Park Area: {slot?.parkingLotName})</Typography> <br />
+                                        <Typography>Entrance Record: {slot?.entryPoint}</Typography>
                                         <div className='flex items-center justify-center mt-5 space-x-5 '>
                                             <Button variant='contained'
                                                 onClick={() => {
                                                     handleSlotUpdate(
-                                                        slot.parkingLotName,
+                                                        slot?.parkingLotName,
                                                         occupiedParkingLots,
                                                         setParkingAreaLocator,
-                                                        slot.entryPoint
+                                                        slot?.entryPoint,
+                                                        slot?.parkingSize
                                                     );
                                                 } }
                                             >
                                                 Unpark
                                             </Button>
-                                            <Typography>{formatTime(slot.vehicle.parkedTime, currentTime, dayjs)} /&#8369;{slot.fee}</Typography>
+                                            <Typography>{formatTime(slot?.vehicle?.parkedTime, currentTime, dayjs)} /&#8369;{slot?.fee}</Typography>
                                         </div>
-                                        {isAreaSelected &&
-                                            (
+                                        {isAreaSelected && (
                                                 <div className='flex gap-5 mt-10'>
                                                     <Button variant='contained'
                                                         onClick={() => {
-                                                            unparkVehicle(slot.parkingLotName, slot.entryPoint, slot.parkingSize);
+                                                            unparkVehicle(slot?.parkingLotName, slot?.entryPoint, slot?.parkingSize);
                                                         } }>
                                                         Pay
                                                     </Button>
                                                     <Button variant='contained'
                                                         onClick={() => {
-                                                            handleVehicleLeave(slot.vehicle.parkedTime, currentTime, setLeftVehicles);
+                                                            handleVehicleLeave(parkingAreaLocator, setOccupiedParkingLots)                      
                                                             setConfirmation(false);
                                                         } }
                                                     >
-                                                        Will get Back
+                                                        {slot?.left === true ? 'Got Back' : 'Will get Back'}
                                                     </Button>
                                                 </div>
-                                            )}
+                                        )}
                                         {isAreaSelected && confirmation && (
                                             <div className='mt-5'>
-                                                <Typography>Total amount of charged is: &#8369;{slot.fee}</Typography>
+                                                <Typography>Total amount of charged is: &#8369;{slot?.fee}</Typography>
                                             </div>
                                         )}
                                     </div>

@@ -5,15 +5,10 @@ const formatTime = (parkedTime, currentTime, dayjs) => {
     return dayjs.duration(elapsedTime).format("HH[h] mm[m] ss[s]");
 }
 
-const calculateFee = (parkedTime, vehicleSize, leftVehicles) => {
-    const parkingDurationMilliseconds = dayjs().diff(parkedTime); // Calculate parked duration in milliseconds
+const calculateFee = (parkedTime, vehicleSize) => {
+    const parkingDurationMilliseconds = dayjs().diff(parkedTime);
     const hoursPassed = Math.floor(parkingDurationMilliseconds / (1000 * 60 * 60));
     const rateIncrease = hoursPassed >= 3;
-
-    const leftVehicle = leftVehicles?.find(vehicle => vehicle.parkedTime === parkedTime);
-    if (leftVehicle) {
-        return leftVehicle.fee;
-    }
 
     let totalFee = 0;
     let flatRateFee;
@@ -92,13 +87,14 @@ const handleSlotUpdate = (
     parkingLotName, 
     occupiedParkingLots, 
     setParkingAreaLocator, 
-    entryPoint
+    entryPoint,
+    parkingSize
 ) => {
     const locateVehicleArea = occupiedParkingLots.find(slot =>
         slot.entryPoint === entryPoint &&
-        slot.parkingLotName === parkingLotName
+        slot.parkingLotName === parkingLotName &&
+        slot.parkingSize === parkingSize
     );
-
     if (locateVehicleArea) {
         const updatedParkingAreaLocator = {
             entryPoint: locateVehicleArea.entryPoint,
@@ -110,13 +106,27 @@ const handleSlotUpdate = (
     }
 };
 
-const handleVehicleLeave = (parkedTime, currentTime, setLeftVehicles) => {
-    const elapsedTime = currentTime - parkedTime;
-    const convertedTime = dayjs.duration(elapsedTime).format("HH[h] mm[m] ss[s]");
-    if (convertedTime) {
-        setLeftVehicles(prevLeftVehicles => [...prevLeftVehicles, convertedTime]);
-    }
-};
+
+const handleVehicleLeave = async (parkingAreaLocator, setOccupiedParkingLots) => {
+    await setOccupiedParkingLots(prevState => {
+        return prevState?.map(occupiedSlot => {
+            if (
+                occupiedSlot?.parkingLotName === parkingAreaLocator?.parkingLotName && 
+                occupiedSlot?.entryPoint === parkingAreaLocator?.entryPoint && 
+                occupiedSlot?.parkingSize === parkingAreaLocator?.parkingSize
+            ) {
+                const updatedSlot = {
+                    ...occupiedSlot,
+                    left: !occupiedSlot.left
+                };
+
+                return updatedSlot;
+            }
+
+            return occupiedSlot;
+        })
+    })
+}
 
 const handleEntryPointSelect = (entryPoint, setSelectedEntryPoint, staticParkingSlots) => {
     setSelectedEntryPoint(entryPoint);

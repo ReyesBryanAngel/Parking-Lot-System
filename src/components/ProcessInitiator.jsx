@@ -74,7 +74,10 @@ const ProcessInitiator = ({
                                                                         <DirectionsCarIcon /> 
                                                                         {parkingLotName}:   
                                                                     </div>
-                                                                    {`${distanceValue} Distance Unit`}
+                                                                    {`${distanceValue} Distance Unit`} <br/>
+                                                                    {duplicateParkingLocator(parkingSlotInfo, selectedEntryPoint, parkingLotName, slot.parkingSize) ?
+                                                                        "Occupied" : null
+                                                                    }
                                                                 </Typography>
                                                             </Card>
                                                         </IconButton>            

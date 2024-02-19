@@ -8,6 +8,7 @@ const staticParkingSlots = [
         vehicle: null, 
         fee: null,
         parkingLotName: null,
+        left: false,
     },
     {   
         id: 2,     
@@ -17,6 +18,7 @@ const staticParkingSlots = [
         distances: { MP1: 4, MP2: 8, MP3: 12 },
         vehicle: null, 
         fee: null,
+        left: false,
     },
     {   
         id: 3,      
@@ -26,6 +28,7 @@ const staticParkingSlots = [
         distances: { LP1: 3, LP2: 5, LP3: 7},
         vehicle: null, 
         fee: null,
+        left: false,
     },        
   ];
 
