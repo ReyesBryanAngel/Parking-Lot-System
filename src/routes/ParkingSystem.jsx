@@ -12,7 +12,7 @@ import {
     handleSlotUpdate,
     handleVehicleLeave,
     vehicleSizeSetter, 
-} from '../components/GlobalFunction';
+} from '../helper/GlobalFunction';
 dayjs.extend(duration);
 
 const ParkingSystem = () => {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Button, Typography, Card, IconButton } from "@mui/material";
-import { duplicateParkingLocator, handleEntryPointSelect } from './GlobalFunction';
+import { duplicateParkingLocator, handleEntryPointSelect } from '../helper/GlobalFunction';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 
 const ProcessInitiator = ({
